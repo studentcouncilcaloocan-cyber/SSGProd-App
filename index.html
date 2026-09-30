@@ -431,8 +431,9 @@
   (function installAppsScriptBridge(){
     const endpoint = String((window.SSG_CONFIG && window.SSG_CONFIG.APPS_SCRIPT_URL) || '').trim();
     const BRIDGE_ORIGINS = new Set(['https://script.google.com','https://script.googleusercontent.com']);
-    let iframe = null;
-    let ready = false;
+let bridgeOrigin = '';
+let iframe = null;
+let ready = false;
     let sequence = 0;
     const pending = new Map();
     const queue = [];
@@ -474,9 +475,10 @@
       if(!BRIDGE_ORIGINS.has(event.origin)) return;
       const data = event.data || {};
       if(data.type === 'SSG_BRIDGE_READY'){
-        ready = true;
-        flush();
-        return;
+      bridgeOrigin = event.origin;
+      ready = true;
+      flush();
+      return;
       }
       if(data.type !== 'SSG_BRIDGE_RESPONSE') return;
       const item = pending.get(data.id);
