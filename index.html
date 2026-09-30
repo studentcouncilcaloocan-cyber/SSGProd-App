@@ -431,9 +431,9 @@
   (function installAppsScriptBridge(){
     const endpoint = String((window.SSG_CONFIG && window.SSG_CONFIG.APPS_SCRIPT_URL) || '').trim();
     const BRIDGE_ORIGINS = new Set(['https://script.google.com','https://script.googleusercontent.com']);
-let bridgeOrigin = '';
-let iframe = null;
-let ready = false;
+    let bridgeOrigin = '';
+    let iframe = null;
+    let ready = false;
     let sequence = 0;
     const pending = new Map();
     const queue = [];
@@ -461,6 +461,12 @@ let ready = false;
       while(ready && queue.length) send(queue.shift());
     }
 
+    setTimeout(function(){
+      if(!ready && queue.length){
+        console.error('[SSG] Apps Script bridge did not become ready. Check the deployed Apps Script URL and bridge.html.');
+      }
+    }, 12000);
+
     function request(method, args, success, failure){
       if(!endpoint){
         const err = new Error('Apps Script backend URL is not configured in config.js.');
@@ -475,10 +481,10 @@ let ready = false;
       if(!BRIDGE_ORIGINS.has(event.origin)) return;
       const data = event.data || {};
       if(data.type === 'SSG_BRIDGE_READY'){
-      bridgeOrigin = event.origin;
-      ready = true;
-      flush();
-      return;
+        bridgeOrigin = event.origin;
+        ready = true;
+        flush();
+        return;
       }
       if(data.type !== 'SSG_BRIDGE_RESPONSE') return;
       const item = pending.get(data.id);
@@ -505,6 +511,16 @@ let ready = false;
     iframe.style.border='0';
     iframe.style.opacity='0';
     iframe.src = endpoint + (endpoint.indexOf('?') >= 0 ? '&' : '?') + 'mode=bridge';
+    iframe.onload = function(){
+      try{
+        iframe.contentWindow.postMessage({
+          type:'SSG_BRIDGE_HELLO'
+        }, 'https://script.google.com');
+        iframe.contentWindow.postMessage({
+          type:'SSG_BRIDGE_HELLO'
+        }, 'https://script.googleusercontent.com');
+      }catch(err){}
+    };
     document.body.appendChild(iframe);
 
     function makeRunner(success, failure){
