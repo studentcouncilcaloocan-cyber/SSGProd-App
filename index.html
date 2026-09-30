@@ -453,7 +453,7 @@
         id:item.id,
         method:item.method,
         args:item.args
-      }, bridgeOrigin);
+      }, bridgeOrigin || '*');
     }
 
     function flush(){
