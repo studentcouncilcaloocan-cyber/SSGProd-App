@@ -249,31 +249,13 @@ function showMessage(text, type) {
 
 function showWelcome(account) {
 
-  document.getElementById('loginBox').innerHTML = `
-    <div class="welcome">
+  sessionStorage.setItem(
+    'SSG_ACCOUNT',
+    JSON.stringify(account)
+  );
 
-      <h2>Welcome!</h2>
-
-      <p>
-        ${escapeHtml(account.name)}
-      </p>
-
-      <p>
-        Role: ${escapeHtml(account.role)}
-      </p>
-
-      <div
-        style="
-          margin-top:20px;
-          color:#16803c;
-          font-size:14px;
-        "
-      >
-        Login successful.
-      </div>
-
-    </div>
-  `;
+  window.location.href =
+    'builder.html';
 }
 
 
