@@ -174,28 +174,12 @@ form.addEventListener('submit', async function(event) {
   showMessage('Checking...', '');
 
 
+const callbackName =
+  'ssgLoginCallback_' + Date.now();
+
+window[callbackName] = function(result) {
+
   try {
-
-    const url =
-      API_URL +
-      '?action=login' +
-      '&username=' + encodeURIComponent(username) +
-      '&password=' + encodeURIComponent(password);
-
-
-    const response = await fetch(url, {
-      method: 'GET',
-      cache: 'no-store'
-    });
-
-
-    if (!response.ok) {
-      throw new Error('Server returned HTTP ' + response.status);
-    }
-
-
-    const result = await response.json();
-
 
     if (result.ok) {
 
@@ -212,19 +196,46 @@ form.addEventListener('submit', async function(event) {
       button.textContent = 'Sign In';
     }
 
+  } finally {
 
-  } catch (error) {
+    delete window[callbackName];
 
-    console.error(error);
+    if (script.parentNode) {
+      script.parentNode.removeChild(script);
+    }
 
-    showMessage(
-      'Unable to connect to the Accounts server.',
-      'error'
-    );
-
-    button.disabled = false;
-    button.textContent = 'Sign In';
   }
+};
+
+
+const script = document.createElement('script');
+
+script.src =
+  API_URL +
+  '?action=login' +
+  '&username=' + encodeURIComponent(username) +
+  '&password=' + encodeURIComponent(password) +
+  '&callback=' + encodeURIComponent(callbackName) +
+  '&t=' + Date.now();
+
+script.onerror = function() {
+
+  delete window[callbackName];
+
+  showMessage(
+    'Unable to connect to the Accounts server.',
+    'error'
+  );
+
+  button.disabled = false;
+  button.textContent = 'Sign In';
+
+  if (script.parentNode) {
+    script.parentNode.removeChild(script);
+  }
+};
+
+document.body.appendChild(script);
 
 });
 
